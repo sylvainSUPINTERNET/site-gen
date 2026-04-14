@@ -16,7 +16,7 @@ on:
           - customer_2
 
 jobs:
-  Deploy-Production:
+  Deploy-Production-Specific-Customer:
     runs-on: ubuntu-latest
     # strategy:
     #   matrix:
