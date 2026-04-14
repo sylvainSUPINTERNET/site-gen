@@ -1,14 +1,32 @@
 name: Vercel Production Deployment
+# on:
+#   push:
+#     branches:
+#       - main
+
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      customer:
+        description: 'Customer to deploy'
+        required: true
+        type: choice
+        options:
+          - customer_1
+          - customer_2
+
 jobs:
   Deploy-Production:
     runs-on: ubuntu-latest
+    # strategy:
+    #   matrix:
+    #     customer: [customer_1, customer_2] # no choice, all customers must be deployed together
+    # defaults:
+    #   run:
+    #     working-directory: sites/${{ matrix.customer }}
     defaults:
       run:
-        working-directory: sites/customer_1
+        working-directory: sites/${{ github.event.inputs.customer }}
     steps:
       - uses: actions/checkout@v2
 
