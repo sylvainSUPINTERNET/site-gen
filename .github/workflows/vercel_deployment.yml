@@ -71,7 +71,7 @@ jobs:
 
             
       - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}
+        run: vercel deploy --prod --yes --token=${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}
         env:
           VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
