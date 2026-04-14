@@ -36,6 +36,7 @@ jobs:
               -H "Authorization: Bearer ${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{"name": "${{ github.event.inputs.customer }}"}')
+            echo $RESPONSE
             PROJECT_ID=$(echo $RESPONSE | jq -r '.id')
           else
             echo "Project already exists, skipping creation."
