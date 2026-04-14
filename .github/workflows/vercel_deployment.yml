@@ -17,6 +17,7 @@ on:
 
 jobs:
   Deploy-Production-Specific-Customer:
+    name: Deploy Production for ${{ github.event.inputs.customer }}
     runs-on: ubuntu-latest
     # strategy:
     #   matrix:
