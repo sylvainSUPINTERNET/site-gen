@@ -10,6 +10,7 @@ on:
         options:
           - customer_1
           - customer_2
+          - customer_3
 
 jobs:
   Deploy-Production-Specific-Customer:
