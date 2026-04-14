@@ -1,10 +1,6 @@
 name: Vercel Production Deployment
 
-
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
       customer:
@@ -19,27 +15,50 @@ jobs:
   Deploy-Production-Specific-Customer:
     name: Deploy Production for ${{ github.event.inputs.customer }}
     runs-on: ubuntu-latest
-    # strategy:
-    #   matrix:
-    #     customer: [customer_1, customer_2] # no choice, all customers must be deployed together
-    # defaults:
-    #   run:
-    #     working-directory: sites/${{ matrix.customer }}
     defaults:
       run:
         working-directory: sites/${{ github.event.inputs.customer }}
     steps:
       - uses: actions/checkout@v2
 
+      - name: Create Vercel Project ${{ github.event.inputs.customer }} (if not exists)
+        run: |
+          RESPONSE=$(curl -s \
+            "https://api.vercel.com/v10/projects/${{ github.event.inputs.customer }}" \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}")
+
+          PROJECT_ID=$(echo $RESPONSE | jq -r '.id')
+
+          if [ "$PROJECT_ID" = "null" ]; then
+            echo "Project not found, creating..."
+            RESPONSE=$(curl -s -X POST "https://api.vercel.com/v10/projects" \
+              -H "Authorization: Bearer ${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{"name": "${{ github.event.inputs.customer }}"}')
+            PROJECT_ID=$(echo $RESPONSE | jq -r '.id')
+          else
+            echo "Project already exists, skipping creation."
+          fi
+
+          echo "VERCEL_PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+
       - name: Install Vercel CLI
         run: npm install --global vercel@latest
 
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}
+        env:
+          VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}
-        continue-on-error: true
+        env:
+          VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
       - name: Deploy Project Artifacts to Vercel
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_DEPLOYMENT_TOKEN }}
+        env:
+          VERCEL_PROJECT_ID: ${{ env.VERCEL_PROJECT_ID }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
